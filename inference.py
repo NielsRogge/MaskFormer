@@ -247,10 +247,10 @@ def main(args):
 
     if args.eval_only:
         model = Trainer.build_model(cfg)
+        DetectionCheckpointer(model, save_dir=cfg.OUTPUT_DIR).resume_or_load(
+            cfg.MODEL.WEIGHTS, resume=args.resume
+        )
         print("Created model!")
-        # DetectionCheckpointer(model, save_dir=cfg.OUTPUT_DIR).resume_or_load(
-        #     cfg.MODEL.WEIGHTS, resume=args.resume
-        # )
         # res = Trainer.test(cfg, model)
         # if cfg.TEST.AUG.ENABLED:
         #     res.update(Trainer.test_with_TTA(cfg, model))
@@ -259,6 +259,7 @@ def main(args):
         # return res
         
         # let's do a forward pass
+        model.eval()
         outputs = model(torch.randn(1,3,512,512))
 
     # trainer = Trainer(cfg)
