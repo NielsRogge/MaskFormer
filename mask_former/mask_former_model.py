@@ -178,6 +178,7 @@ class MaskFormer(nn.Module):
         print("Backbone features:")
         for k,v in features.items():
             print(k,v.shape)
+            print("First values:", v[0,0,:3,:3])
 
         # features = self.backbone(images.tensor)
         outputs = self.sem_seg_head(features)
