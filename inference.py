@@ -241,7 +241,9 @@ def setup(args):
 def main(args):
     cfg = setup(args)
     # set device to CPU
+    cfg.defrost()
     cfg.MODEL.DEVICE='cpu'
+    cfg.freeze()
 
     if args.eval_only:
         model = Trainer.build_model(cfg)
