@@ -11,6 +11,8 @@ import os
 from collections import OrderedDict
 from typing import Any, Dict, List, Set
 
+from pdb import set_trace as bp
+
 import torch
 
 import detectron2.utils.comm as comm
@@ -113,7 +115,11 @@ class Trainer(DefaultTrainer):
             mapper = DETRPanopticDatasetMapper(cfg, True)
         else:
             mapper = None
-        return build_detection_train_loader(cfg, mapper=mapper)
+        dataloader = build_detection_train_loader(cfg, mapper=mapper)
+
+        bp()
+
+        return dataloader
 
     @classmethod
     def build_lr_scheduler(cls, cfg, optimizer):
