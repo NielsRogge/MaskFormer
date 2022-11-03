@@ -188,8 +188,12 @@ class MaskFormer(nn.Module):
 
             # hack 2: use targets from the hub
 
-            targets = {'labels': batch["class_labels"], 'masks': batch["mask_labels"]}
-            targets = {k: [x.to(self.device) for x in v] for k, v in targets.items()}
+            targets = []
+            batch_size = batch["pixel_values"].shape[0]
+            for example_idx in range(batch_size):
+                target = {'labels': batch["class_labels"][example_idx].to(self.device),
+                        'masks': batch["mask_labels"][example_idx].to(self.device)}
+                targets.append(target)
 
             # bipartite matching-based loss
             losses = self.criterion(outputs, targets)
