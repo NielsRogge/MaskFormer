@@ -165,6 +165,8 @@ class MaskFormer(nn.Module):
         # images = [(x - self.pixel_mean) / self.pixel_std for x in images]
         # images = ImageList.from_tensors(images, self.size_divisibility)
 
+        # important: put model back in evaluation mode
+
         # hack: use batch from the hub
         from huggingface_hub import hf_hub_download
         
@@ -183,73 +185,73 @@ class MaskFormer(nn.Module):
         # features = self.backbone(images.tensor)
         outputs = self.sem_seg_head(features)
 
-        if self.training:
-            print("Preparing targets:")
-            # mask classification target
-            # if "instances" in batched_inputs[0]:
-            #     gt_instances = [x["instances"].to(self.device) for x in batched_inputs]
-            #     targets = self.prepare_targets(gt_instances, images)
-            # else:
-            #     targets = None
+        # if self.training:
+        print("Preparing targets:")
+        # mask classification target
+        # if "instances" in batched_inputs[0]:
+        #     gt_instances = [x["instances"].to(self.device) for x in batched_inputs]
+        #     targets = self.prepare_targets(gt_instances, images)
+        # else:
+        #     targets = None
 
-            # hack 2: use targets from the hub
+        # hack 2: use targets from the hub
 
-            targets = []
-            batch_size = batch["pixel_values"].shape[0]
-            for example_idx in range(batch_size):
-                target = {'labels': batch["class_labels"][example_idx].to(self.device),
-                        'masks': batch["mask_labels"][example_idx].to(self.device)}
-                targets.append(target)
+        targets = []
+        batch_size = batch["pixel_values"].shape[0]
+        for example_idx in range(batch_size):
+            target = {'labels': batch["class_labels"][example_idx].to(self.device),
+                    'masks': batch["mask_labels"][example_idx].to(self.device)}
+            targets.append(target)
 
-            # bipartite matching-based loss
-            losses = self.criterion(outputs, targets)
+        # bipartite matching-based loss
+        losses = self.criterion(outputs, targets)
 
-            for k, v in losses.items():
-                print("Loss {}: {}".format(k, v))
+        for k, v in losses.items():
+            print("Loss {}: {}".format(k, v))
 
-            for k in list(losses.keys()):
-                if k in self.criterion.weight_dict:
-                    losses[k] *= self.criterion.weight_dict[k]
-                else:
-                    # remove this loss if not specified in `weight_dict`
-                    losses.pop(k)
+        for k in list(losses.keys()):
+            if k in self.criterion.weight_dict:
+                losses[k] *= self.criterion.weight_dict[k]
+            else:
+                # remove this loss if not specified in `weight_dict`
+                losses.pop(k)
 
-            return losses
-        else:
-            mask_cls_results = outputs["pred_logits"]
-            mask_pred_results = outputs["pred_masks"]
-            # upsample masks
-            mask_pred_results = F.interpolate(
-                mask_pred_results,
-                size=(images.tensor.shape[-2], images.tensor.shape[-1]),
-                mode="bilinear",
-                align_corners=False,
-            )
+        return losses
+        # else:
+        #     mask_cls_results = outputs["pred_logits"]
+        #     mask_pred_results = outputs["pred_masks"]
+        #     # upsample masks
+        #     mask_pred_results = F.interpolate(
+        #         mask_pred_results,
+        #         size=(images.tensor.shape[-2], images.tensor.shape[-1]),
+        #         mode="bilinear",
+        #         align_corners=False,
+        #     )
 
-            processed_results = []
-            for mask_cls_result, mask_pred_result, input_per_image, image_size in zip(
-                mask_cls_results, mask_pred_results, batched_inputs, images.image_sizes
-            ):
-                height = input_per_image.get("height", image_size[0])
-                width = input_per_image.get("width", image_size[1])
+        #     processed_results = []
+        #     for mask_cls_result, mask_pred_result, input_per_image, image_size in zip(
+        #         mask_cls_results, mask_pred_results, batched_inputs, images.image_sizes
+        #     ):
+        #         height = input_per_image.get("height", image_size[0])
+        #         width = input_per_image.get("width", image_size[1])
 
-                if self.sem_seg_postprocess_before_inference:
-                    mask_pred_result = sem_seg_postprocess(
-                        mask_pred_result, image_size, height, width
-                    )
+        #         if self.sem_seg_postprocess_before_inference:
+        #             mask_pred_result = sem_seg_postprocess(
+        #                 mask_pred_result, image_size, height, width
+        #             )
 
-                # semantic segmentation inference
-                r = self.semantic_inference(mask_cls_result, mask_pred_result)
-                if not self.sem_seg_postprocess_before_inference:
-                    r = sem_seg_postprocess(r, image_size, height, width)
-                processed_results.append({"sem_seg": r})
+        #         # semantic segmentation inference
+        #         r = self.semantic_inference(mask_cls_result, mask_pred_result)
+        #         if not self.sem_seg_postprocess_before_inference:
+        #             r = sem_seg_postprocess(r, image_size, height, width)
+        #         processed_results.append({"sem_seg": r})
 
-                # panoptic segmentation inference
-                if self.panoptic_on:
-                    panoptic_r = self.panoptic_inference(mask_cls_result, mask_pred_result)
-                    processed_results[-1]["panoptic_seg"] = panoptic_r
+        #         # panoptic segmentation inference
+        #         if self.panoptic_on:
+        #             panoptic_r = self.panoptic_inference(mask_cls_result, mask_pred_result)
+        #             processed_results[-1]["panoptic_seg"] = panoptic_r
 
-            return processed_results
+        #     return processed_results
 
     def prepare_targets(self, targets, images):
         h, w = images.tensor.shape[-2:]

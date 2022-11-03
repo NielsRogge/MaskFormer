@@ -650,6 +650,9 @@ class SwinTransformer(nn.Module):
 
     def forward(self, x):
         """Forward function."""
+        print("Shape of pixel values:", x.shape)
+        print("First values of pixel values:", x[0,0,:3,:3])
+
         x = self.patch_embed(x)
 
         Wh, Ww = x.size(2), x.size(3)

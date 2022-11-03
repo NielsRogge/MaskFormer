@@ -259,7 +259,6 @@ def main(args):
         # return res
         
         # let's do a forward pass
-        model.train()
         outputs = model(torch.randn(1,3,512,512))
 
     # trainer = Trainer(cfg)
