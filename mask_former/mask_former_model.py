@@ -161,23 +161,41 @@ class MaskFormer(nn.Module):
                     segments_info (list[dict]): Describe each segment in `panoptic_seg`.
                         Each dict contains keys "id", "category_id", "isthing".
         """
-        images = [x["image"].to(self.device) for x in batched_inputs]
-        images = [(x - self.pixel_mean) / self.pixel_std for x in images]
-        images = ImageList.from_tensors(images, self.size_divisibility)
+        # images = [x["image"].to(self.device) for x in batched_inputs]
+        # images = [(x - self.pixel_mean) / self.pixel_std for x in images]
+        # images = ImageList.from_tensors(images, self.size_divisibility)
 
-        features = self.backbone(images.tensor)
+        # hack: use batch from the hub
+        from huggingface_hub import hf_hub_download
+        
+        filepath = hf_hub_download(repo_id="nielsr/maskformer-batch", filename="batch.pt", repo_type="dataset")
+        batch = torch.load(filepath)
+
+        # hack 1: use images from the hub
+
+        features = self.backbone(batch["pixel_values"].to(self.device))
+        # features = self.backbone(images.tensor)
         outputs = self.sem_seg_head(features)
 
         if self.training:
+            print("Preparing targets:")
             # mask classification target
-            if "instances" in batched_inputs[0]:
-                gt_instances = [x["instances"].to(self.device) for x in batched_inputs]
-                targets = self.prepare_targets(gt_instances, images)
-            else:
-                targets = None
+            # if "instances" in batched_inputs[0]:
+            #     gt_instances = [x["instances"].to(self.device) for x in batched_inputs]
+            #     targets = self.prepare_targets(gt_instances, images)
+            # else:
+            #     targets = None
+
+            # hack 2: use targets from the hub
+
+            targets = {'labels': batch["class_labels"], 'masks': batch["mask_labels"]}
+            targets = {k: [x.to(self.device) for x in v] for k, v in targets.items()}
 
             # bipartite matching-based loss
             losses = self.criterion(outputs, targets)
+
+            for k, v in losses.items():
+                print("Loss {}: {}".format(k, v))
 
             for k in list(losses.keys()):
                 if k in self.criterion.weight_dict:

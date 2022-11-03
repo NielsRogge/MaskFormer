@@ -257,7 +257,10 @@ def main(args):
         # if comm.is_main_process():
         #     verify_results(cfg, res)
         # return res
-        pass
+        
+        # let's do a forward pass
+        model.train()
+        outputs = model(torch.randn(1,3,512,512))
 
     # trainer = Trainer(cfg)
     # trainer.resume_or_load(resume=args.resume)
