@@ -174,6 +174,11 @@ class MaskFormer(nn.Module):
         # hack 1: use images from the hub
 
         features = self.backbone(batch["pixel_values"].to(self.device))
+        
+        print("Backbone features:")
+        for k,v in features.items():
+            print(k,v.shape)
+
         # features = self.backbone(images.tensor)
         outputs = self.sem_seg_head(features)
 
