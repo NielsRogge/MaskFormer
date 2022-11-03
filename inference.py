@@ -240,6 +240,8 @@ def setup(args):
 
 def main(args):
     cfg = setup(args)
+    # set device to CPU
+    cfg.MODEL.DEVICE='cpu'
 
     if args.eval_only:
         model = Trainer.build_model(cfg)
