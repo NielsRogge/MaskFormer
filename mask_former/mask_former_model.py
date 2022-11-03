@@ -216,6 +216,10 @@ class MaskFormer(nn.Module):
                 # remove this loss if not specified in `weight_dict`
                 losses.pop(k)
 
+        print("LOSSES AFTER FILTERING weight dict:")
+        for k, v in losses.items():
+            print("Loss {}: {}".format(k, v))
+        
         return losses
         # else:
         #     mask_cls_results = outputs["pred_logits"]
