@@ -113,6 +113,12 @@ class HungarianMatcher(nn.Module):
             cost_class = -out_prob[:, tgt_ids]
 
             # Downsample gt masks to save memory
+            print("Shape of tgt_mask: ", tgt_mask.shape)
+            print("Shape of out_mask: ", out_mask.shape)
+            print("Type of tgt mask:", tgt_mask.dtype)
+            print("Type of out mask:", out_mask.dtype)
+            print("First values of tgt mask:", tgt_mask[:3,:3])
+            print("First values of out mask:", out_mask[:3,:3])
             tgt_mask = F.interpolate(tgt_mask[:, None], size=out_mask.shape[-2:], mode="nearest")
 
             # Flatten spatial dimension
