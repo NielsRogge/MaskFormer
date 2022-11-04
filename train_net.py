@@ -121,6 +121,18 @@ class Trainer(DefaultTrainer):
 
         batch = next(iter(dataloader))
 
+        # let's upload this batch to the hub
+        from huggingface_hub import HfApi
+        
+        api = HfApi()
+        torch.save(batch, "batch_maskformer_original.pt")
+        api.upload_file(
+            path_or_fileobj="batch_maskformer_original.pt",
+            path_in_repo="batch_maskformer_original.pt",
+            repo_id="nielsr/maskformer-batch",
+            repo_type="dataset",
+        )
+
         for k,v in batch.items():
             print(k,v)
 
