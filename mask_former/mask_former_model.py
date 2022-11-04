@@ -177,20 +177,19 @@ class MaskFormer(nn.Module):
                 targets = None
 
             # START upload batch to the huggingface hub
-            # from huggingface_hub import HfApi
+            from huggingface_hub import HfApi
             
-            # api = HfApi()
+            api = HfApi()
 
-            # batch = {"pixel_values": images.tensor, "targets": targets}
-            # torch.save(batch, "batch_maskformer_original_v2.pt")
+            batch = {"pixel_values": images.tensor, "targets": targets}
+            torch.save(batch, "batch_maskformer_original_v2.pt")
             
-            # api.upload_file(
-            #     path_or_fileobj="batch_maskformer_original_v2.pt",
-            #     path_in_repo="batch_maskformer_original_v2.pt",
-            #     repo_id="nielsr/maskformer-batch",
-            #     repo_type="dataset",
-            # )
-
+            api.upload_file(
+                path_or_fileobj="batch_maskformer_original_v2.pt",
+                path_in_repo="batch_maskformer_original_v2.pt",
+                repo_id="nielsr/maskformer-batch",
+                repo_type="dataset",
+            )
             # END upload batch to the huggingface hub
 
             # bipartite matching-based loss
