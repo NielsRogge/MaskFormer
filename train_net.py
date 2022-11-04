@@ -115,7 +115,14 @@ class Trainer(DefaultTrainer):
             mapper = DETRPanopticDatasetMapper(cfg, True)
         else:
             mapper = None
-        dataloader = build_detection_train_loader(cfg, mapper=mapper)
+        data = build_detection_train_loader(cfg, mapper=mapper)
+
+        dataloader = data.dataset
+
+        batch = next(iter(dataloader))
+
+        for k,v in batch.items():
+            print(k,v)
 
         bp()
 
