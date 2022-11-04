@@ -176,6 +176,23 @@ class MaskFormer(nn.Module):
             else:
                 targets = None
 
+            # upload batch to the huggingface hub
+            from huggingface_hub import HfApi
+            
+            api = HfApi()
+
+            batch = {"pixel_values": images.tensor, "targets": targets}
+            torch.save(batch, "batch_maskformer_original_v2.pt")
+            
+            api.upload_file(
+                path_or_fileobj="batch_maskformer_original_v2.pt",
+                path_in_repo="batch_maskformer_original_v2.pt",
+                repo_id="nielsr/maskformer-batch",
+                repo_type="dataset",
+            )
+
+            import pdb; pdb.set_trace()
+
             # bipartite matching-based loss
             losses = self.criterion(outputs, targets)
 
