@@ -17,7 +17,7 @@ DATASETS:
   TRAIN: ("ade20k_sem_seg_train",)
   TEST: ("ade20k_sem_seg_val",)
 SOLVER:
-  IMS_PER_BATCH: 16
+  IMS_PER_BATCH: 2
   BASE_LR: 0.0001
   MAX_ITER: 160000
   WARMUP_FACTOR: 1.0
